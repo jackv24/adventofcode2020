@@ -1,3 +1,5 @@
+use std::cmp::max;
+
 fn main() {
     let input = vec![
         "2-5 l: fllxf",
@@ -1004,34 +1006,68 @@ fn main() {
 
     println!("Count: {}", input.len());
 
-    let mut valid_passwords = 0;
+    let mut valid_passwords_one = 0;
+    let mut valid_passwords_two = 0;
 
     for group in input.iter().map(|s| s.split(':').collect::<Vec<&str>>()) {
         let policy = group[0].trim().split_whitespace().collect::<Vec<&str>>();
-        let policy_str = policy[1];
+        let password = group[1].trim();
+
         let policy_range = policy[0]
             .split('-')
             .map(|s| s.parse::<i32>().expect("Could not parse range"))
             .collect::<Vec<i32>>();
 
-        let password = group[1].trim();
-
-        let mut matches = 0;
-
-        for c in password.chars() {
-            for policy_char in policy_str.chars() {
-                if c == policy_char {
-                    matches += 1;
-                }
-            }
+        if validate_group_part_one(&policy, password, &policy_range) {
+            valid_passwords_one += 1;
         }
 
-        let range = policy_range[0]..=policy_range[1];
-
-        if range.contains(&matches) {
-            valid_passwords += 1;
+        if validate_group_part_two(&policy, password, &policy_range) {
+            valid_passwords_two += 1;
         }
     }
 
-    println!("Valid: {}", valid_passwords);
+    println!("Valid Part 1: {}", valid_passwords_one);
+    println!("Valid Part 2: {}", valid_passwords_two);
+}
+
+fn validate_group_part_one(policy: &Vec<&str>, password: &str, policy_range: &Vec<i32>) -> bool {
+    let policy_str = policy[1];
+    let mut matches = 0;
+    for c in password.chars() {
+        for policy_char in policy_str.chars() {
+            if c == policy_char {
+                matches += 1;
+            }
+        }
+    }
+
+    let range = policy_range[0]..=policy_range[1];
+    range.contains(&matches)
+}
+
+fn validate_group_part_two(policy: &Vec<&str>, password: &str, policy_range: &Vec<i32>) -> bool {
+    let policy_str = policy[1];
+    let pass_chars = password.chars().collect::<Vec<char>>();
+
+    let max = max(policy_range[0], policy_range[1]) - 1;
+    if (pass_chars.len() as i32) < max {
+        return false;
+    }
+
+    let policy_str_chars = policy_str.chars().collect::<Vec<char>>();
+
+    let compare_char = policy_str_chars[0];
+    let index_a: usize = policy_range[0] as usize - 1;
+    let index_b: usize = policy_range[1] as usize - 1;
+
+    let mut count = 0;
+    if pass_chars[index_a] == compare_char {
+        count += 1;
+    }
+    if pass_chars[index_b] == compare_char {
+        count += 1;
+    }
+
+    count == 1
 }
