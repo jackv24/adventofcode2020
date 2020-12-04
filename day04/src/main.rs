@@ -2,7 +2,15 @@ use std::fs::File;
 use std::io::{self, prelude::*, BufReader};
 
 fn main() -> io::Result<()> {
-    let required_fields = ["byr", "iyr", "eyr", "hgt", "hcl", "ecl", "pid"];
+    let required_fields: [(&str, fn(&str) -> bool); 7] = [
+        ("byr", validate_byr),
+        ("iyr", validate_iyr),
+        ("eyr", validate_eyr),
+        ("hgt", validate_hgt),
+        ("hcl", validate_hcl),
+        ("ecl", validate_ecl),
+        ("pid", validate_pid),
+    ];
 
     // Construct bitmask with all bits set for array indices (for comparison)
     let mut all_fields_mask = 0;
@@ -39,7 +47,9 @@ fn main() -> io::Result<()> {
 
             // Sit bits in mask for matching required fields
             for i in 0..required_fields.len() {
-                if parts[0] == required_fields[i] {
+                let match_tuple = required_fields[i];
+                // Matched field
+                if parts[0] == match_tuple.0 && match_tuple.1(parts[1]) {
                     let mask = 1 << i;
                     has_fields_mask |= mask;
                 }
@@ -55,4 +65,39 @@ fn main() -> io::Result<()> {
     println!("Valid Passports: {}", valid_count);
 
     Ok(())
+}
+
+fn validate_byr(value: &str) -> bool {
+    if value.chars().count() != 4 {
+        return false;
+    }
+
+    match value.parse::<i32>() {
+        Ok(num) => (1920..=2002).contains(&num),
+        Err(_) => false,
+    }
+}
+
+fn validate_iyr(value: &str) -> bool {
+    true // TODO
+}
+
+fn validate_eyr(value: &str) -> bool {
+    true // TODO
+}
+
+fn validate_hgt(value: &str) -> bool {
+    true // TODO
+}
+
+fn validate_hcl(value: &str) -> bool {
+    true // TODO
+}
+
+fn validate_ecl(value: &str) -> bool {
+    true // TODO
+}
+
+fn validate_pid(value: &str) -> bool {
+    true // TODO
 }
