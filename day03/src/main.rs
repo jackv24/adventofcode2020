@@ -1294,16 +1294,19 @@ fn main() {
         ],
     ];
 
-    let a = get_trees_encountered(input, 1, 1);
-    let b = get_trees_encountered(input, 3, 1);
-    let c = get_trees_encountered(input, 5, 1);
-    let d = get_trees_encountered(input, 7, 1);
-    let e = get_trees_encountered(input, 1, 2);
+    let a = get_trees_encountered(&input, 1, 1);
+    let b = get_trees_encountered(&input, 3, 1);
+    let c = get_trees_encountered(&input, 5, 1);
+    let d = get_trees_encountered(&input, 7, 1);
+    let e = get_trees_encountered(&input, 1, 2);
 
     println!("Multiplied: {}", a * b * c * d * e);
 }
 
-fn get_trees_encountered(input: [[char; 31]; 323], move_r: usize, move_d: usize) -> i32 {
+fn get_trees_encountered<T>(input: &[T], move_r: usize, move_d: usize) -> i32
+where
+    T: AsRef<[char]>,
+{
     let mut x = move_r;
     let mut y = move_d;
 
@@ -1311,7 +1314,7 @@ fn get_trees_encountered(input: [[char; 31]; 323], move_r: usize, move_d: usize)
 
     let height = input.len();
     for i in 0..height {
-        let arr = input[i];
+        let arr = input[i].as_ref();
 
         let width = arr.len();
         for j in 0..width {
