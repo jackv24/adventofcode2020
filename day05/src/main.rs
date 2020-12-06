@@ -1,33 +1,66 @@
 use std::fs::File;
 use std::io::{self, prelude::*, BufReader};
 
+#[derive(Eq, PartialEq, Debug)]
+struct Position {
+    row: i32,
+    column: i32,
+    seat_id: i32,
+}
+
+impl Position {
+    fn new(row: i32, column: i32, seat_id: i32) -> Self {
+        Self {
+            row,
+            column,
+            seat_id,
+        }
+    }
+}
+
+const ROWS: i32 = 128;
+const COLUMNS: i32 = 8;
+
 fn main() -> io::Result<()> {
     // load input file as buffered reader, in case the file is long
     let file = File::open("input.txt")?;
     let reader = BufReader::new(file);
 
     let mut highest_id = 0;
+    let mut found_seat_ids = [false; ((ROWS * 8) + COLUMNS) as usize];
 
+    // Part 1
     for line in reader.lines() {
         let line = line?;
         let position = get_position(&line);
-        if position.2 > highest_id {
-            highest_id = position.2;
+        if position.seat_id > highest_id {
+            highest_id = position.seat_id;
         }
+        found_seat_ids[position.seat_id as usize] = true;
     }
 
     println!("Highest ID: {}", highest_id);
 
+    // Part 2
+    for i in 1..found_seat_ids.len() - 1 {
+        if found_seat_ids[i] {
+            continue;
+        }
+        if found_seat_ids[i - 1] && found_seat_ids[i + 1] {
+            println!("Found missing seat ID: {}", i);
+        }
+    }
+
     Ok(())
 }
 
-fn get_position(line: &str) -> (i32, i32, i32) {
+fn get_position(line: &str) -> Position {
     if line.chars().count() != 10 {
         panic!("Encountered line with wrong number of characters");
     }
 
-    let mut row_range = (0, 127);
-    let mut column_range = (0, 7);
+    let mut row_range = (0, ROWS - 1);
+    let mut column_range = (0, COLUMNS - 1);
 
     let chars = line.chars().collect::<Vec<_>>();
     for i in 0..chars.len() {
@@ -58,13 +91,17 @@ fn get_position(line: &str) -> (i32, i32, i32) {
     let column = column_range.0;
     let seat_id = (row * 8) + column;
 
-    (row, column, seat_id)
+    Position {
+        row,
+        column,
+        seat_id,
+    }
 }
 
 #[test]
 fn test_examples() {
-    assert_eq!(get_position("FBFBBFFRLR"), (44, 5, 357));
-    assert_eq!(get_position("BFFFBBFRRR"), (70, 7, 567));
-    assert_eq!(get_position("FFFBBBFRRR"), (14, 7, 119));
-    assert_eq!(get_position("BBFFBBFRLL"), (102, 4, 820));
+    assert_eq!(get_position("FBFBBFFRLR"), Position::new(44, 5, 357));
+    assert_eq!(get_position("BFFFBBFRRR"), Position::new(70, 7, 567));
+    assert_eq!(get_position("FFFBBBFRRR"), Position::new(14, 7, 119));
+    assert_eq!(get_position("BBFFBBFRLL"), Position::new(102, 4, 820));
 }
