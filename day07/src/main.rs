@@ -1,8 +1,8 @@
 use std::io::{self, prelude::*, BufReader};
 use std::{collections::HashMap, fs::File};
 
-type ParentBag = HashMap<&'static str, ChildBag>;
-type ChildBag = HashMap<&'static str, i32>;
+type ParentBag = HashMap<String, ChildBag>;
+type ChildBag = HashMap<String, i32>;
 
 fn main() -> io::Result<()> {
     // load input file as buffered reader, in case the file is long
@@ -35,9 +35,10 @@ fn main() -> io::Result<()> {
                 (bag_name, num)
             })
             .filter(|(_, count)| count > &0)
+            .map(|(s, c)| (s.to_string(), c))
             .collect::<ChildBag>();
 
-        parent_bags.insert(bag_descriptor[0], child_bags);
+        parent_bags.insert(bag_descriptor[0].to_string(), child_bags);
     }
 
     Ok(())
