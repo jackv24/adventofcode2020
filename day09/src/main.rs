@@ -39,7 +39,20 @@ fn main() -> Result<(), Box<dyn Error>> {
         invalid_num, invalid_index
     );
 
-    // TODO: Part 2
+    // Part 2
+    let (i, j) = (0..nums.len())
+        .find_map(|i| {
+            (i..nums.len())
+                .map(|j| (j, nums[i..j].iter().sum::<usize>()))
+                .find(|(_, sum)| sum == invalid_num)
+                .and_then(|(j, _)| Some((i, j)))
+        })
+        .unwrap();
+
+    let min = nums[i..j].iter().min().unwrap();
+    let max = nums[i..j].iter().max().unwrap();
+
+    println!("Encryption weakness: {} ({} + {})", min + max, min, max);
 
     Ok(())
 }
