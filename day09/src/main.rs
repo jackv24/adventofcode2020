@@ -1,52 +1,45 @@
-use std::fs::File;
-use std::io::{self, prelude::*, BufReader};
+use std::io::{prelude::*, BufReader};
+use std::{error::Error, fs::File};
 
-fn main() -> io::Result<()> {
+fn main() -> Result<(), Box<dyn Error>> {
     // load input file as buffered reader, in case the file is long
     let file = File::open("input.txt")?;
     let reader = BufReader::new(file);
 
-    match scan_lines(reader, 25) {
-        Ok(num) => println!("Found wrong num: {}", num),
-        Err(_) => println!("Did not find wrong num"),
+    // Parse numbers from file into vector
+    let mut nums = Vec::new();
+    for line in reader.lines() {
+        // Parse num into usize (i32 is too small for these numbers)
+        let num = line?.parse::<usize>()?;
+        nums.push(num);
     }
+
+    // Significant help from https://github.com/ChevyRay/advent_of_code_2020/blob/main/src/bin/day9.rs
+    // for converting from complicated loops to this
+
+    // Part 1
+    let preamble = 25;
+    let (invalid_index, invalid_num) = nums
+        .iter()
+        .enumerate()
+        // Skip over the preamble since we'll be searching that far back
+        .skip(preamble)
+        .find(|&(i, num)| {
+            nums[i - preamble..i]
+                .iter()
+                // Need to use flat_map since we end with another map in this closure
+                .flat_map(|a| nums[i - preamble..i].iter().map(move |b| (a, b)))
+                .find(|&(a, b)| a + b == *num)
+                .is_none()
+        })
+        .unwrap();
+
+    println!(
+        "Found invalid num {} at index {}",
+        invalid_num, invalid_index
+    );
+
+    // TODO: Part 2
 
     Ok(())
-}
-
-fn scan_lines(reader: BufReader<File>, preamble: usize) -> Result<i32, ()> {
-    let mut nums = Vec::new();
-
-    for line in reader.lines() {
-        let num = line.unwrap().parse::<i32>().unwrap();
-        nums.push(num);
-
-        if nums.len() <= preamble {
-            continue;
-        }
-
-        let len = nums.len() - 1;
-
-        let mut success = false;
-        for i in len - preamble..len {
-            for j in len - preamble..len {
-                let num_a = nums[i];
-                let num_b = nums[j];
-
-                if num_a == num_b {
-                    continue;
-                }
-
-                if num_a + num_b == num {
-                    success = true;
-                }
-            }
-        }
-
-        if !success {
-            return Ok(num);
-        }
-    }
-
-    Err(())
 }
