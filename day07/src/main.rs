@@ -46,6 +46,8 @@ fn main() -> io::Result<()> {
     }
 
     let innermost_bag = "shiny gold";
+
+    // Part 1
     let count = parent_bags
         .0
         .values()
@@ -54,6 +56,14 @@ fn main() -> io::Result<()> {
 
     println!(
         "Bags that will eventually contain a {} bag: {}",
+        innermost_bag, count
+    );
+
+    // Part 2
+    let count = count_bags(&parent_bags, parent_bags.0.get(innermost_bag).unwrap());
+
+    println!(
+        "Individual bags required inside a {} bag: {}",
         innermost_bag, count
     );
 
@@ -76,4 +86,15 @@ fn can_hold(parent_bags: &ParentBags, child_bags: &ChildBags, innermost_bag: &st
     }
 
     false
+}
+
+fn count_bags(parent_bags: &ParentBags, child_bags: &ChildBags) -> i32 {
+    child_bags
+        .0
+        .iter()
+        .map(|(bag, count)| {
+            // The amount of this bag, plus the amount inside each of this bag
+            count + count * count_bags(parent_bags, parent_bags.0.get(bag).unwrap())
+        })
+        .sum()
 }
