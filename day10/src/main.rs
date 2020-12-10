@@ -9,19 +9,19 @@ fn main() -> Result<(), Box<dyn Error>> {
     // Parse numbers from file into vector
     let mut jolt_list = Vec::new();
     for line in reader.lines() {
-        // Parse num into usize (i32 is too small for these numbers)
-        let num = line?.parse::<usize>()?;
+        let num = line?.parse::<u64>()?;
         jolt_list.push(num);
     }
+    jolt_list.push(0);
 
     // Sort list so we can easily calculate differences from previous elements
     jolt_list.sort();
 
-    let mut jolt_differences = Vec::new();
+    // Add device on to end (always 3 jolts higher than last)
+    jolt_list.push(jolt_list.last().unwrap() + 3);
 
-    // First difference is from 0
-    let first_jolt = jolt_list[0];
-    jolt_differences.push((first_jolt, first_jolt));
+    // Part 1
+    let mut jolt_differences = Vec::new();
 
     // All subsequent differences are from their previous
     for i in 1..jolt_list.len() {
@@ -30,11 +30,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         jolt_differences.push((jolt, jolt - prev_jolt));
     }
 
-    // Device joltage is always 3 above the highest
-    let device_joltage = jolt_differences.last().unwrap().0 + 3;
-    jolt_differences.push((device_joltage, 3));
-
-    // Part 1
     let jolt_1_diffs = jolt_differences.iter().filter(|j| j.1 == 1).count();
     let jolt_3_diffs = jolt_differences.iter().filter(|j| j.1 == 3).count();
     println!(
@@ -43,6 +38,25 @@ fn main() -> Result<(), Box<dyn Error>> {
         jolt_3_diffs,
         jolt_1_diffs * jolt_3_diffs
     );
+
+    // Part 2
+    // Need to use u64 as the number of permutations is huge
+    let mut permutations = vec![0 as u64; jolt_list.len()];
+    permutations[0] = 1;
+
+    // Still not entirely sure why this works? ಥ_ಥ https://www.reddit.com/r/adventofcode/comments/ka8z8x/2020_day_10_solutions/gf9f6fv/
+    for i in 1..jolt_list.len() {
+        for (j, _) in jolt_list[..i]
+            .iter()
+            .rev()
+            .take_while(|&v| v + 3 >= jolt_list[i])
+            .enumerate()
+        {
+            permutations[i] += permutations[i - (j + 1)];
+        }
+    }
+
+    println!("Permutations: {}", permutations.last().unwrap());
 
     Ok(())
 }
